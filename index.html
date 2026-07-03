@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Riverline · Card Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;600;700;900&family=Montserrat:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Poppins:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Roboto:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Lato:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Raleway:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Oswald:wght@300;400;500;600;700&family=Bebas+Neue&family=Anton&family=Barlow+Condensed:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Nunito:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&family=Quicksand:wght@300;400;500;600;700&family=Rubik:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&family=Work+Sans:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&family=Urbanist:ital,wght@0,300;0,400;0,600;0,700;0,900;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&family=Archivo+Black&family=Black+Han+Sans&family=Fjalla+One&family=Righteous&family=Lobster&family=Pacifico&family=Dancing+Script:wght@400;600;700&family=Sacramento&family=Great+Vibes&family=Satisfy&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -600,8 +601,55 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
           <div class="prop-row">
             <span class="prop-label">Fuente</span>
             <select class="prop-select" id="propFont" onchange="setLP('font',this.value)">
-              <option>DM Sans</option><option>Impact</option><option>Georgia</option>
-              <option>Arial Black</option><option>Trebuchet MS</option><option>Courier New</option>
+              <optgroup label="── Sin serifa (Sans-serif)">
+                <option>DM Sans</option>
+                <option>Inter</option>
+                <option>Montserrat</option>
+                <option>Poppins</option>
+                <option>Roboto</option>
+                <option>Open Sans</option>
+                <option>Lato</option>
+                <option>Raleway</option>
+                <option>Nunito</option>
+                <option>Quicksand</option>
+                <option>Rubik</option>
+                <option>Work Sans</option>
+                <option>Exo 2</option>
+                <option>Urbanist</option>
+                <option>Plus Jakarta Sans</option>
+                <option>Space Grotesk</option>
+                <option>Syne</option>
+              </optgroup>
+              <optgroup label="── Display / Impacto">
+                <option>Oswald</option>
+                <option>Bebas Neue</option>
+                <option>Anton</option>
+                <option>Barlow Condensed</option>
+                <option>Archivo Black</option>
+                <option>Fjalla One</option>
+                <option>Black Han Sans</option>
+                <option>Righteous</option>
+                <option>Impact</option>
+                <option>Arial Black</option>
+              </optgroup>
+              <optgroup label="── Serifa (Serif)">
+                <option>Playfair Display</option>
+                <option>Merriweather</option>
+                <option>Lora</option>
+                <option>Georgia</option>
+              </optgroup>
+              <optgroup label="── Script / Caligrafía">
+                <option>Lobster</option>
+                <option>Pacifico</option>
+                <option>Dancing Script</option>
+                <option>Sacramento</option>
+                <option>Great Vibes</option>
+                <option>Satisfy</option>
+              </optgroup>
+              <optgroup label="── Monoespaciada">
+                <option>DM Mono</option>
+                <option>Courier New</option>
+              </optgroup>
             </select>
           </div>
           <div class="prop-row">
@@ -1550,7 +1598,10 @@ function setLP(k,v){
   if(k==='color'){document.getElementById('propColor').value=safeHex(v);document.getElementById('propColorHex').value=v;}
   if(k==='fill'){document.getElementById('propFillHex').value=v;}
   if(k==='bgColor'){document.getElementById('propBgColorHex').value=v;}
-  render();
+  // Debounce render for color picker events (prevents freeze during drag)
+  const isColor=(k==='color'||k==='fill'||k==='stroke'||k==='bgColor');
+  if(isColor){clearTimeout(_fxRenderTimer);_fxRenderTimer=setTimeout(()=>render(),16);}
+  else render();
   clearTimeout(_pt);_pt=setTimeout(saveH,400);
 }
 function updateProps(){
@@ -1651,7 +1702,7 @@ function setBgMode(m){
   document.getElementById('bgAngleRow').style.display=m==='linear'?'':'none';
   renderGradBar();render();saveH();
 }
-function setBgSolid(v){S.bgColor=v;document.getElementById('bgColorPicker').value=safeHex(v);document.getElementById('bgColorHex').value=v;render();clearTimeout(_pt);_pt=setTimeout(saveH,400);}
+function setBgSolid(v){S.bgColor=v;document.getElementById('bgColorPicker').value=safeHex(v);document.getElementById('bgColorHex').value=v;clearTimeout(_fxRenderTimer);_fxRenderTimer=setTimeout(()=>render(),16);clearTimeout(_pt);_pt=setTimeout(saveH,400);}
 function syncBgUI(){
   document.getElementById('bgColorPicker').value=safeHex(S.bgColor);
   document.getElementById('bgColorHex').value=S.bgColor;
@@ -2374,13 +2425,16 @@ function setFx(name,prop,val){
   const l=S.layers.find(x=>x.id===S.sel);if(!l)return;
   ensureFx(l);
   l.fx[name][prop]=val;
-  // sync hex input if color
   if(prop==='color'){
     const hexEl=document.getElementById('fx'+name.charAt(0).toUpperCase()+name.slice(1)+'ColorHex');
     if(hexEl)hexEl.value=val;
   }
-  render();clearTimeout(_pt);_pt=setTimeout(saveH,400);
+  // Debounce render for rapid color/slider events (prevent browser freeze)
+  clearTimeout(_fxRenderTimer);
+  _fxRenderTimer=setTimeout(()=>{ render(); },16); // ~60fps cap
+  clearTimeout(_pt);_pt=setTimeout(saveH,600);
 }
+let _fxRenderTimer=null;
 
 function syncFxUI(l){
   if(!l){document.getElementById('fxPanel').style.display='none';return;}
@@ -2455,22 +2509,42 @@ function drawInnerEffect(l, type){
   const ox=isGlow?0:(fx.x??0);
   const oy=isGlow?0:(fx.y??4);
 
-  // Save state and clip to layer bounds
   ctx.save();
+  // Clip to the layer shape so shadow only appears inside
   ctx.beginPath();
-  if((l.borderRadius||0)>0) rrect(ctx,l.x,l.y,l.w,l.h,l.borderRadius);
+  const br=l.borderRadius||0;
+  if(br>0) rrect(ctx,l.x,l.y,l.w,l.h,br);
   else ctx.rect(l.x,l.y,l.w,l.h);
   ctx.clip();
 
-  // Create a temporary off-screen shadow: draw a solid rect outside clip, shadow falls inside
-  const spread=blur*2+Math.max(Math.abs(ox),Math.abs(oy))+4;
-  ctx.shadowColor=hexToRgb(color,opacity);
+  // Draw a hollow frame OUTSIDE the clip area with shadow pointing inward.
+  // Technique: a very large rect with a hole the exact size of the layer.
+  // We use ctx.shadowColor + draw the border of the clip just outside it.
+  const pad=blur+Math.max(Math.abs(ox),Math.abs(oy))+10;
+
+  ctx.shadowColor=hexToRgb(color, opacity);
   ctx.shadowBlur=blur;
-  ctx.shadowOffsetX=ox; ctx.shadowOffsetY=oy;
-  ctx.fillStyle='rgba(0,0,0,0)';
-  // Draw an outer rect that casts shadow inward
-  const s=spread;
-  ctx.fillRect(l.x-s+ox,l.y-s+oy,l.w+s*2,l.h+s*2);
+  // For inner glow: shadow offset 0, draw border inside (slight inset)
+  // For inner shadow: offset per fx settings (but inverted so it goes inward)
+  ctx.shadowOffsetX= isGlow ? 0 : -ox;
+  ctx.shadowOffsetY= isGlow ? 0 : -oy;
+
+  ctx.fillStyle='rgba(0,0,0,0.001)'; // near-transparent but triggers shadow
+  // Draw a large ring around the layer — shadow falls inward into clip region
+  ctx.beginPath();
+  // outer boundary
+  ctx.rect(l.x-pad, l.y-pad, l.w+pad*2, l.h+pad*2);
+  // punch hole = layer bounds (winding rule)
+  if(br>0) rrect(ctx,l.x,l.y,l.w,l.h,br);
+  else ctx.rect(l.x,l.y,l.w,l.h);
+  ctx.fillStyle=hexToRgb(color, opacity);
+  ctx.shadowColor=hexToRgb(color, opacity);
+  ctx.shadowBlur=blur;
+  ctx.shadowOffsetX= isGlow? 0 : ox;
+  ctx.shadowOffsetY= isGlow? 0 : oy;
+  // Fill the outer ring — the shadow bleeds inward through the hole
+  ctx.fill('evenodd');
+
   ctx.restore();
 }
 
