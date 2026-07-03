@@ -220,6 +220,31 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
 /* MARQUEE SELECTION */
 #marquee{position:absolute;border:1.5px solid #3b82f6;background:rgba(59,130,246,.08);pointer-events:none;display:none;border-radius:2px;z-index:10}
 
+/* ── CUSTOM COLOR PICKER ── */
+.cp-swatch{cursor:pointer;transition:transform .1s}
+.cp-swatch:hover{transform:scale(1.1)}
+#cpPopup{
+  position:fixed;z-index:9000;width:224px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:12px;padding:14px;box-shadow:0 12px 40px rgba(0,0,0,.7);
+  display:none;flex-direction:column;gap:10px;
+}
+#cpPopup.open{display:flex}
+.cp-spectrum{width:100%;height:130px;border-radius:6px;position:relative;cursor:crosshair;overflow:hidden;flex-shrink:0}
+.cp-spec-canvas{display:block;width:100%;height:100%}
+.cp-spec-cursor{position:absolute;width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.5);transform:translate(-50%,-50%);pointer-events:none}
+.cp-hue{width:100%;height:12px;border-radius:6px;cursor:pointer;position:relative;background:linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)}
+.cp-hue-thumb{position:absolute;top:-2px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--border2);box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translateX(-50%);pointer-events:none}
+.cp-alpha{width:100%;height:12px;border-radius:6px;cursor:pointer;position:relative}
+.cp-alpha-thumb{position:absolute;top:-2px;width:16px;height:16px;border-radius:50%;background:#fff;border:2px solid var(--border2);box-shadow:0 1px 4px rgba(0,0,0,.4);transform:translateX(-50%);pointer-events:none}
+.cp-hex-row{display:flex;gap:6px;align-items:center}
+.cp-hex-input{flex:1;background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-size:12px;font-family:var(--mono);padding:5px 8px;outline:none}
+.cp-hex-input:focus{border-color:var(--accent)}
+.cp-preview{width:28px;height:28px;border-radius:5px;border:1px solid var(--border2);flex-shrink:0}
+.cp-swatches{display:grid;grid-template-columns:repeat(8,1fr);gap:3px}
+.cp-preset{width:100%;aspect-ratio:1;border-radius:3px;cursor:pointer;border:1px solid rgba(255,255,255,.1);transition:transform .1s}
+.cp-preset:hover{transform:scale(1.15)}
+
 /* SNAP GUIDES */
 #snapContainer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:11}
 .snap-guide{position:absolute;pointer-events:none;background:#e50d2e;opacity:.8}
@@ -528,7 +553,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
         <div id="bgSolidRow" class="prop-row">
           <span class="prop-label">Color</span>
           <div class="prop-color-wrap">
-            <div class="swatch"><input type="color" id="bgColorPicker" value="#f5d0bc" oninput="setBgSolid(this.value)"></div>
+            <div class="swatch cp-swatch" id="bgColorPicker-swatch" style="background:#f5d0bc" onclick="openCP('bgColorPicker',this,function(v){setBgSolid(this.value)})"></div>
             <input class="prop-input" id="bgColorHex" value="#f5d0bc" oninput="setBgSolid(this.value)" style="font-family:var(--mono);font-size:11px">
           </div>
         </div>
@@ -554,7 +579,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
             <div class="prop-row">
               <span class="prop-label">Color stop</span>
               <div class="prop-color-wrap">
-                <div class="swatch"><input type="color" id="stopColor" oninput="onStopColor(this.value)"></div>
+                <div class="swatch cp-swatch" id="stopColor-swatch" style="background:#000000" onclick="openCP('stopColor',this,function(v){onStopColor(this.value)})"></div>
                 <input class="prop-input" id="stopColorHex" oninput="onStopColor(this.value)" style="font-family:var(--mono);font-size:11px">
               </div>
             </div>
@@ -664,7 +689,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
           <div class="prop-row">
             <span class="prop-label">Color</span>
             <div class="prop-color-wrap">
-              <div class="swatch"><input type="color" id="propColor" oninput="setLP('color',this.value)"></div>
+              <div class="swatch cp-swatch" id="propColor-swatch" style="background:#000000" onclick="openCP('propColor',this,function(v){setLP('color',this.value)})"></div>
               <input class="prop-input" id="propColorHex" oninput="setLP('color',this.value)">
             </div>
           </div>
@@ -680,7 +705,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
           <div class="prop-row">
             <span class="prop-label">Fondo capa</span>
             <div class="prop-color-wrap">
-              <div class="swatch"><input type="color" id="propBgColor" oninput="setLP('bgColor',this.value)"></div>
+              <div class="swatch cp-swatch" id="propBgColor-swatch" style="background:#000000" onclick="openCP('propBgColor',this,function(v){setLP('bgColor',this.value)})"></div>
               <input class="prop-input" id="propBgColorHex" placeholder="none" oninput="setLP('bgColor',this.value)">
             </div>
           </div>
@@ -723,14 +748,14 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
           <div class="prop-row" id="propFillRow">
             <span class="prop-label">Fill</span>
             <div class="prop-color-wrap">
-              <div class="swatch"><input type="color" id="propFill" oninput="setLP('fill',this.value)"></div>
+              <div class="swatch cp-swatch" id="propFill-swatch" style="background:#000000" onclick="openCP('propFill',this,function(v){setLP('fill',this.value)})"></div>
               <input class="prop-input" id="propFillHex" oninput="setLP('fill',this.value)">
             </div>
           </div>
           <div class="prop-row">
             <span class="prop-label">Stroke</span>
             <div class="prop-color-wrap">
-              <div class="swatch"><input type="color" id="propStroke" oninput="setLP('stroke',this.value)"></div>
+              <div class="swatch cp-swatch" id="propStroke-swatch" style="background:#000000" onclick="openCP('propStroke',this,function(v){setLP('stroke',this.value)})"></div>
               <input class="prop-input prop-input-sm" id="propStrokeW" type="number" value="0" placeholder="px" oninput="setLP('strokeWidth',+this.value)">
             </div>
           </div>
@@ -853,7 +878,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
             <button class="fx-expand" onclick="toggleFxDetail('shadow')">▾</button>
           </div>
           <div class="fx-detail" id="fxDetailShadow">
-            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch"><input type="color" id="fxShadowColor" value="#000000" oninput="setFx('shadow','color',this.value)"></div><input class="prop-input" id="fxShadowColorHex" value="#000000" oninput="setFx('shadow','color',this.value)"></div></div>
+            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch cp-swatch" id="fxShadowColor-swatch" style="background:#000000" onclick="openCP('fxShadowColor',this,function(v){setFx('shadow','color',this.value)})"></div><input class="prop-input" id="fxShadowColorHex" value="#000000" oninput="setFx('shadow','color',this.value)"></div></div>
             <div class="prop-row"><span class="prop-label">X / Y</span><input class="prop-input prop-input-sm" id="fxShadowX" type="number" value="4" oninput="setFx('shadow','x',+this.value)"><input class="prop-input prop-input-sm" id="fxShadowY" type="number" value="4" oninput="setFx('shadow','y',+this.value)"></div>
             <div class="prop-row"><span class="prop-label">Blur</span><div class="slider-wrap"><input type="range" min="0" max="60" id="fxShadowBlur" value="8" oninput="setFx('shadow','blur',+this.value);document.getElementById('fxShadowBlurV').textContent=this.value+'px'"><span class="slider-val" id="fxShadowBlurV">8px</span></div></div>
             <div class="prop-row"><span class="prop-label">Opacidad</span><div class="slider-wrap"><input type="range" min="0" max="100" id="fxShadowOpacity" value="60" oninput="setFx('shadow','opacity',+this.value/100);document.getElementById('fxShadowOpacityV').textContent=this.value+'%'"><span class="slider-val" id="fxShadowOpacityV">60%</span></div></div>
@@ -865,7 +890,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
             <button class="fx-expand" onclick="toggleFxDetail('innerShadow')">▾</button>
           </div>
           <div class="fx-detail" id="fxDetailInnerShadow">
-            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch"><input type="color" id="fxInnerShadowColor" value="#000000" oninput="setFx('innerShadow','color',this.value)"></div><input class="prop-input" id="fxInnerShadowColorHex" value="#000000" oninput="setFx('innerShadow','color',this.value)"></div></div>
+            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch cp-swatch" id="fxInnerShadowColor-swatch" style="background:#000000" onclick="openCP('fxInnerShadowColor',this,function(v){setFx('innerShadow','color',this.value)})"></div><input class="prop-input" id="fxInnerShadowColorHex" value="#000000" oninput="setFx('innerShadow','color',this.value)"></div></div>
             <div class="prop-row"><span class="prop-label">X / Y</span><input class="prop-input prop-input-sm" id="fxInnerShadowX" type="number" value="0" oninput="setFx('innerShadow','x',+this.value)"><input class="prop-input prop-input-sm" id="fxInnerShadowY" type="number" value="4" oninput="setFx('innerShadow','y',+this.value)"></div>
             <div class="prop-row"><span class="prop-label">Blur</span><div class="slider-wrap"><input type="range" min="0" max="60" id="fxInnerShadowBlur" value="10" oninput="setFx('innerShadow','blur',+this.value);document.getElementById('fxInnerShadowBlurV').textContent=this.value+'px'"><span class="slider-val" id="fxInnerShadowBlurV">10px</span></div></div>
             <div class="prop-row"><span class="prop-label">Opacidad</span><div class="slider-wrap"><input type="range" min="0" max="100" id="fxInnerShadowOpacity" value="50" oninput="setFx('innerShadow','opacity',+this.value/100);document.getElementById('fxInnerShadowOpacityV').textContent=this.value+'%'"><span class="slider-val" id="fxInnerShadowOpacityV">50%</span></div></div>
@@ -877,7 +902,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
             <button class="fx-expand" onclick="toggleFxDetail('outerGlow')">▾</button>
           </div>
           <div class="fx-detail" id="fxDetailOuterGlow">
-            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch"><input type="color" id="fxOuterGlowColor" value="#ffffff" oninput="setFx('outerGlow','color',this.value)"></div><input class="prop-input" id="fxOuterGlowColorHex" value="#ffffff" oninput="setFx('outerGlow','color',this.value)"></div></div>
+            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch cp-swatch" id="fxOuterGlowColor-swatch" style="background:#ffffff" onclick="openCP('fxOuterGlowColor',this,function(v){setFx('outerGlow','color',this.value)})"></div><input class="prop-input" id="fxOuterGlowColorHex" value="#ffffff" oninput="setFx('outerGlow','color',this.value)"></div></div>
             <div class="prop-row"><span class="prop-label">Tamaño</span><div class="slider-wrap"><input type="range" min="0" max="80" id="fxOuterGlowSize" value="16" oninput="setFx('outerGlow','size',+this.value);document.getElementById('fxOuterGlowSizeV').textContent=this.value+'px'"><span class="slider-val" id="fxOuterGlowSizeV">16px</span></div></div>
             <div class="prop-row"><span class="prop-label">Opacidad</span><div class="slider-wrap"><input type="range" min="0" max="100" id="fxOuterGlowOpacity" value="70" oninput="setFx('outerGlow','opacity',+this.value/100);document.getElementById('fxOuterGlowOpacityV').textContent=this.value+'%'"><span class="slider-val" id="fxOuterGlowOpacityV">70%</span></div></div>
           </div>
@@ -888,7 +913,7 @@ body.space-pan.panning,body.space-pan.panning *{cursor:grabbing!important}
             <button class="fx-expand" onclick="toggleFxDetail('innerGlow')">▾</button>
           </div>
           <div class="fx-detail" id="fxDetailInnerGlow">
-            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch"><input type="color" id="fxInnerGlowColor" value="#ffffff" oninput="setFx('innerGlow','color',this.value)"></div><input class="prop-input" id="fxInnerGlowColorHex" value="#ffffff" oninput="setFx('innerGlow','color',this.value)"></div></div>
+            <div class="prop-row"><span class="prop-label">Color</span><div class="prop-color-wrap"><div class="swatch cp-swatch" id="fxInnerGlowColor-swatch" style="background:#ffffff" onclick="openCP('fxInnerGlowColor',this,function(v){setFx('innerGlow','color',this.value)})"></div><input class="prop-input" id="fxInnerGlowColorHex" value="#ffffff" oninput="setFx('innerGlow','color',this.value)"></div></div>
             <div class="prop-row"><span class="prop-label">Tamaño</span><div class="slider-wrap"><input type="range" min="0" max="80" id="fxInnerGlowSize" value="12" oninput="setFx('innerGlow','size',+this.value);document.getElementById('fxInnerGlowSizeV').textContent=this.value+'px'"><span class="slider-val" id="fxInnerGlowSizeV">12px</span></div></div>
             <div class="prop-row"><span class="prop-label">Opacidad</span><div class="slider-wrap"><input type="range" min="0" max="100" id="fxInnerGlowOpacity" value="60" oninput="setFx('innerGlow','opacity',+this.value/100);document.getElementById('fxInnerGlowOpacityV').textContent=this.value+'%'"><span class="slider-val" id="fxInnerGlowOpacityV">60%</span></div></div>
           </div>
@@ -2565,6 +2590,176 @@ window.onload=()=>{
   hist=[];histIdx=-1;saveH();
 };
 window.addEventListener('resize',fitCanvas);
+</script>
+<!-- CUSTOM COLOR PICKER -->
+<div id="cpPopup">
+  <div class="cp-spectrum" id="cpSpectrum">
+    <canvas class="cp-spec-canvas" id="cpSpecCanvas"></canvas>
+    <div class="cp-spec-cursor" id="cpSpecCursor"></div>
+  </div>
+  <div class="cp-hue" id="cpHue">
+    <div class="cp-hue-thumb" id="cpHueThumb"></div>
+  </div>
+  <div class="cp-alpha" id="cpAlpha" style="background:linear-gradient(to right,transparent,#e50d2e)">
+    <div class="cp-alpha-thumb" id="cpAlphaThumb"></div>
+  </div>
+  <div class="cp-hex-row">
+    <div class="cp-preview" id="cpPreview"></div>
+    <input class="cp-hex-input" id="cpHexInput" maxlength="7" placeholder="#000000" oninput="cpHexTyped(this.value)">
+  </div>
+  <div class="cp-swatches" id="cpSwatches"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CUSTOM COLOR PICKER (no native color input = no freeze)
+// ════════════════════════════════════════════════════════
+const CP_PRESETS=['#ffffff','#000000','#e50d2e','#f5d0bc','#3b82f6','#22c55e',
+  '#f59e0b','#8b5cf6','#ec4899','#06b6d4','#f97316','#10b981',
+  '#1a1a1a','#2a2a32','#52525e','#8a8a96','#d4d4d8','#f0f0f4',
+  '#0f172a','#1e40af','#7c3aed','#be123c','#065f46','#92400e'];
+
+let cpCallback=null, cpSwatchEl=null, cpH=0, cpS=1, cpV=1, cpA=1;
+let cpDragging=null;
+
+const cpPopup=document.getElementById('cpPopup');
+const cpSpecCanvas=document.getElementById('cpSpecCanvas');
+const cpSpecCtx=cpSpecCanvas.getContext('2d');
+
+// Build preset swatches
+const cpSwatchesEl=document.getElementById('cpSwatches');
+CP_PRESETS.forEach(c=>{
+  const el=document.createElement('div');
+  el.className='cp-preset';el.style.background=c;
+  el.onclick=()=>{cpSetHex(c);cpCommit();};
+  cpSwatchesEl.appendChild(el);
+});
+
+function openCP(id, swatchEl, callback){
+  cpCallback=callback;
+  cpSwatchEl=swatchEl;
+  // read current color from swatch background
+  const bg=swatchEl.style.background||'#000000';
+  const hex=bg.startsWith('#')?bg:rgbToHex(bg);
+  cpSetHex(hex);
+  // position popup near swatch
+  const rect=swatchEl.getBoundingClientRect();
+  const pop=cpPopup;
+  pop.style.display='flex'; // needed to measure
+  const pw=pop.offsetWidth, ph=pop.offsetHeight;
+  let top=rect.bottom+6, left=rect.left;
+  if(top+ph>window.innerHeight) top=rect.top-ph-6;
+  if(left+pw>window.innerWidth) left=window.innerWidth-pw-8;
+  pop.style.top=top+'px'; pop.style.left=left+'px';
+  pop.classList.add('open');
+  cpDrawSpectrum();
+  // stop propagation so document click-close doesn't fire immediately
+  event.stopPropagation();
+}
+
+function closeCP(){ cpPopup.classList.remove('open'); }
+document.addEventListener('click', e=>{
+  if(!cpPopup.contains(e.target)&&!e.target.classList.contains('cp-swatch')) closeCP();
+});
+
+// ── HSV ↔ HEX conversions ──
+function hsvToHex(h,s,v){
+  let r,g,b;
+  const i=Math.floor(h/60)%6,f=h/60-Math.floor(h/60),p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+  if(i===0){r=v;g=t;b=p;}else if(i===1){r=q;g=v;b=p;}else if(i===2){r=p;g=v;b=t;}
+  else if(i===3){r=p;g=q;b=v;}else if(i===4){r=t;g=p;b=v;}else{r=v;g=p;b=q;}
+  return '#'+[r,g,b].map(x=>Math.round(x*255).toString(16).padStart(2,'0')).join('');
+}
+function hexToHsv(hex){
+  const r=parseInt(hex.slice(1,3),16)/255,g=parseInt(hex.slice(3,5),16)/255,b=parseInt(hex.slice(5,7),16)/255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),d=max-min;
+  let h=0,s=max===0?0:d/max,v=max;
+  if(d!==0){
+    if(max===r)h=((g-b)/d+6)%6;
+    else if(max===g)h=(b-r)/d+2;
+    else h=(r-g)/d+4;
+    h*=60;
+  }
+  return{h,s,v};
+}
+function rgbToHex(rgb){
+  const m=rgb.match(/\d+/g);if(!m||m.length<3)return '#000000';
+  return '#'+m.slice(0,3).map(x=>parseInt(x).toString(16).padStart(2,'0')).join('');
+}
+
+function cpSetHex(hex){
+  if(!/^#[0-9a-fA-F]{6}$/.test(hex)) return;
+  const {h,s,v}=hexToHsv(hex);
+  cpH=h;cpS=s;cpV=v;
+  document.getElementById('cpHexInput').value=hex;
+  document.getElementById('cpPreview').style.background=hex;
+  cpUpdateUI();
+}
+function cpDrawSpectrum(){
+  const w=cpSpecCanvas.width=cpSpecCanvas.offsetWidth||196;
+  const h=cpSpecCanvas.height=cpSpecCanvas.offsetHeight||130;
+  const base=hsvToHex(cpH,1,1);
+  // white→color horizontal
+  const gh=cpSpecCtx.createLinearGradient(0,0,w,0);
+  gh.addColorStop(0,'#fff');gh.addColorStop(1,base);
+  cpSpecCtx.fillStyle=gh;cpSpecCtx.fillRect(0,0,w,h);
+  // transparent→black vertical
+  const gv=cpSpecCtx.createLinearGradient(0,0,0,h);
+  gv.addColorStop(0,'transparent');gv.addColorStop(1,'#000');
+  cpSpecCtx.fillStyle=gv;cpSpecCtx.fillRect(0,0,w,h);
+}
+function cpUpdateUI(){
+  // spectrum cursor
+  const w=cpSpecCanvas.offsetWidth||196, h=cpSpecCanvas.offsetHeight||130;
+  const cur=document.getElementById('cpSpecCursor');
+  cur.style.left=(cpS*w)+'px'; cur.style.top=((1-cpV)*h)+'px';
+  // hue thumb
+  document.getElementById('cpHueThumb').style.left=(cpH/360*100)+'%';
+  // preview
+  const hex=hsvToHex(cpH,cpS,cpV);
+  document.getElementById('cpPreview').style.background=hex;
+  document.getElementById('cpHexInput').value=hex;
+  // alpha bar tint
+  document.getElementById('cpAlpha').style.background=`linear-gradient(to right,transparent,${hsvToHex(cpH,cpS,cpV)})`;
+  document.getElementById('cpAlphaThumb').style.left=(cpA*100)+'%';
+}
+function cpCommit(){
+  const hex=hsvToHex(cpH,cpS,cpV);
+  if(cpSwatchEl) cpSwatchEl.style.background=hex;
+  if(cpCallback) cpCallback(hex);
+}
+function cpHexTyped(v){
+  if(/^#[0-9a-fA-F]{6}$/.test(v)) cpSetHex(v), cpCommit();
+}
+
+// ── Drag handlers ──
+function cpSpecClick(e){
+  const rect=cpSpecCanvas.getBoundingClientRect();
+  cpS=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  cpV=Math.max(0,Math.min(1,1-(e.clientY-rect.top)/rect.height));
+  cpUpdateUI();cpCommit();
+}
+function cpHueClick(e){
+  const rect=document.getElementById('cpHue').getBoundingClientRect();
+  cpH=Math.max(0,Math.min(360,(e.clientX-rect.left)/rect.width*360));
+  cpDrawSpectrum();cpUpdateUI();cpCommit();
+}
+function cpAlphaClick(e){
+  const rect=document.getElementById('cpAlpha').getBoundingClientRect();
+  cpA=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));
+  cpUpdateUI();
+}
+
+document.getElementById('cpSpectrum').addEventListener('mousedown',e=>{cpDragging='spec';cpSpecClick(e);e.preventDefault();});
+document.getElementById('cpHue').addEventListener('mousedown',e=>{cpDragging='hue';cpHueClick(e);e.preventDefault();});
+document.getElementById('cpAlpha').addEventListener('mousedown',e=>{cpDragging='alpha';cpAlphaClick(e);e.preventDefault();});
+document.addEventListener('mousemove',e=>{
+  if(!cpDragging)return;
+  if(cpDragging==='spec') cpSpecClick(e);
+  else if(cpDragging==='hue') cpHueClick(e);
+  else if(cpDragging==='alpha') cpAlphaClick(e);
+});
+document.addEventListener('mouseup',()=>{cpDragging=null;});
 </script>
 </body>
 </html>
